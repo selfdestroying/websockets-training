@@ -4,7 +4,6 @@ const db = await open({
     filename: 'db.sqlite',
     driver: sqlite3.Database,
 })
-
 export const dropTables = async () => {
     await db.exec(`DROP TABLE IF EXISTS messages`)
     await db.exec(`DROP TABLE IF EXISTS users`)
@@ -23,7 +22,16 @@ export const createTableUsers = async () => {
 }
 
 export const createUser = async (username) => {
-    await db.run(`INSERT INTO users (username) VALUES (?)`, [username])
+    const id = (
+        await db.run(`INSERT INTO users (username) VALUES (?)`, [username])
+    ).lastID
+    const user = await db.get(`SELECT * FROM users WHERE id = ?`, [id])
+    return user
+}
+
+export const getUsers = async () => {
+    const users = await db.all(`SELECT * FROM users`)
+    return users
 }
 
 export default db

@@ -4,7 +4,7 @@ import http from 'http'
 import { dirname, join } from 'path'
 import { Server } from 'socket.io'
 import { fileURLToPath } from 'url'
-import db, { createUser } from './db.js'
+import db, { createUser, getUsers } from './db.js'
 
 const app = express()
 const server = http.createServer(app)
@@ -20,21 +20,35 @@ app.use(urlencoded({ extended: true }))
 app.use(coockieParser())
 app.use(express.static(join(__dirname, '..', 'src')))
 app.get('/', async (req, res) => {
-    const username = req.cookies.username
-    if (!username) {
-        return res.redirect('/login')
+    try {
+        const username = req.cookies.username
+        const userId = req.cookies.userId
+        if (!username || !userId) {
+            return res.redirect('/login')
+        }
+        const user = {
+            id: userId,
+            username,
+        }
+
+        const userExists = await db.get(
+            'SELECT id FROM users WHERE username = ?',
+            [user.username],
+        )
+        if (!userExists) {
+            await createUser(user.username)
+        }
+        return res.sendFile(join(__dirname, '..', 'src', 'client.html'))
+    } catch (error) {
+        console.log('Error on server (37)', error)
+        return res.sendStatus(500)
     }
-    const userExists = await db.get('SELECT id FROM users WHERE username = ?', [
-        username,
-    ])
-    if (!userExists) {
-        await createUser(username)
-    }
-    return res.sendFile(join(__dirname, '..', 'src', 'client.html'))
 })
 
 app.get('/login', (req, res) => {
-    if (req.cookies.username) {
+    const username = req.cookies.username
+    const userId = req.cookies.userId
+    if (username && userId) {
         return res.redirect('/')
     }
     res.sendFile(join(__dirname, '..', 'src', 'login.html'))
@@ -46,40 +60,48 @@ app.post('/login', async (req, res) => {
         return res.redirect('/login')
     }
     try {
-        await createUser(username)
+        const user = await createUser(username)
+        res.cookie('username', user.username)
+        res.cookie('userId', user.id)
+        res.redirect('/')
     } catch (error) {
         console.log(error.code)
+        res.redirect('/login')
     }
-    res.cookie('username', username)
-    res.redirect('/')
 })
 
 io.on('connection', async (socket) => {
-    io.emit('clientConnect', socket.handshake.auth.username)
+    const users = await getUsers()
+    const data = {
+        user: socket.handshake.auth.user,
+        users,
+    }
+    console.log(data)
+    io.emit('clientConnect', data)
     let result
-    socket.on(
-        'message',
-        async (message, clientOffset, username, created_at, callback) => {
-            try {
-                const user = await db.get(
-                    'SELECT id FROM users WHERE username = ?',
-                    [username],
-                )
-                result = await db.run(
-                    'INSERT INTO messages (message, created_at, type, client_offset, user_id) VALUES (?, ?, ?, ?, ?)',
-                    [message, created_at, 'message', clientOffset, user.id],
-                )
-            } catch (error) {
-                if (error.errno === 19) {
-                    callback()
-                }
-                console.log(error)
-                return
+    socket.on('message', async (data, callback) => {
+        try {
+            const { message, clientOffset, created_at, type } = data
+            const user = socket.handshake.auth.user
+            result = await db.run(
+                'INSERT INTO messages (message, created_at, type, client_offset, user_id) VALUES (?, ?, ?, ?, ?)',
+                [message, created_at, type, clientOffset, user.id],
+            )
+            const newData = {
+                serverOffset: result.lastID,
+                message,
+                sender: user.username,
+                created_at,
             }
-            io.emit('message', message, result.lastID, username)
+            io.emit('message', newData)
             callback()
-        },
-    )
+        } catch (error) {
+            if (error.errno === 19) {
+                callback()
+            }
+            console.log(error)
+        }
+    })
     socket.on('disconnect', () => {
         io.emit('clientDisconnect', socket.handshake.auth.username)
     })
@@ -89,13 +111,13 @@ io.on('connection', async (socket) => {
                 'SELECT messages.id, message, created_at, username FROM messages LEFT JOIN users ON messages.user_id = users.id WHERE messages.id > ?',
                 [socket.handshake.auth.serverOffset || 0],
                 (_err, row) => {
-                    socket.emit(
-                        'message',
-                        row.message,
-                        row.id,
-                        row.username,
-                        row.created_at,
-                    )
+                    const newData = {
+                        serverOffset: row.id,
+                        message: row.message,
+                        sender: row.username,
+                        created_at: row.created_at,
+                    }
+                    socket.emit('message', newData)
                 },
             )
         } catch (error) {

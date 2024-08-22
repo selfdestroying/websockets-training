@@ -9,13 +9,13 @@
 
 ## Tools
 
-### Client
+-   ### Client
 
--   HTML
--   CSS
--   Vanilla JS
+    -   HTML
+    -   CSS
+    -   JS
 
-### Sever
+-   ### Sever
 
--   ExpressJS
--   Socket\.IO
+    -   ExpressJS
+    -   Socket\.IO
