@@ -99,7 +99,7 @@ io.on('connection', async (socket) => {
                 sender: user.username,
                 created_at,
             }
-            io.emit('message', newData)
+            io.except(socket.id).emit('message', newData)
             callback()
         } catch (error) {
             if (error.errno === 19) {
@@ -107,6 +107,20 @@ io.on('connection', async (socket) => {
             }
             console.log(error)
         }
+    })
+    socket.on('startTyping', (callback) => {
+        io.except(socket.id).emit(
+            'startTyping',
+            socket.handshake.auth.user.username,
+        )
+        callback()
+    })
+    socket.on('stopTyping', (callback) => {
+        io.except(socket.id).emit(
+            'stopTyping',
+            socket.handshake.auth.user.username,
+        )
+        callback()
     })
     socket.on('disconnect', () => {
         io.emit('clientDisconnect', socket.handshake.auth.user.username)

@@ -1,3 +1,12 @@
+function debounce(func, delay) {
+    let timeoutId
+    return function (...args) {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+            func.apply(this, args)
+        }, delay)
+    }
+}
 const createServiceMessage = (message) => {
     const p = document.createElement('p')
     p.classList.add('service-message')
@@ -55,11 +64,12 @@ const getCookie = function (name) {
     const parts = value.split('; ' + name + '=')
     if (parts.length == 2) return parts.pop().split(';').shift()
 }
-const usersList = document.querySelector('#usersContainer')
 const form = document.querySelector('form')
+const usersList = document.querySelector('#usersContainer')
 const input = document.querySelector('#messageInput')
 const serviceMessage = document.querySelector('#service-message')
 const messages = document.querySelector('#messageContainer')
+const userTyping = document.querySelector('#userTyping')
 const username = getCookie('username') || ''
 const userId = getCookie('userId') || ''
 let counter = 0
@@ -90,6 +100,24 @@ form.addEventListener('submit', (e) => {
     }
     socket.emit('message', data)
     input.value = ''
+    createMessage(username, message, created_at)
+})
+
+input.oninput = debounce(() => {
+    socket.emit('stopTyping')
+}, 3000)
+input.addEventListener('input', (e) => {
+    if (input.value.length % 2 == 0) {
+        socket.emit('startTyping')
+    }
+})
+
+socket.on('startTyping', (username) => {
+    userTyping.textContent = `${username} is typing...`
+})
+
+socket.on('stopTyping', () => {
+    userTyping.textContent = ''
 })
 
 socket.on('clientConnect', (data) => {
