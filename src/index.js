@@ -99,6 +99,10 @@ socket.on('clientConnect', (data) => {
         const p = document.createElement('p')
         p.classList.add('user')
         p.classList.add('online')
+        // if (usersOnline.includes(u.username)) {
+        // p.classList.add('online')
+        // }
+
         p.textContent = u.username
         usersList.appendChild(p)
     })
@@ -107,12 +111,15 @@ socket.on('clientConnect', (data) => {
     }
     createServiceMessage(`${user.username} connected`)
 })
-// socket.on('clientDisconnect', (user) => {
-//     if (user.username == username) {
-//         return
-//     }
-//     createServiceMessage(`${user.username} disconnected`)
-// })
+socket.on('clientDisconnect', (username) => {
+    const usersList = document.querySelector('#usersContainer')
+    for (user of usersList.children) {
+        if (user.textContent == username) {
+            // user.classList.remove('online')
+            user.remove()
+        }
+    }
+})
 socket.on('message', (data) => {
     const { message, serverOffset, created_at, sender } = data
     const time = new Date(created_at).toLocaleTimeString().slice(0, -3)

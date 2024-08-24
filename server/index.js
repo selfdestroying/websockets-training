@@ -4,7 +4,7 @@ import http from 'http'
 import { dirname, join } from 'path'
 import { Server } from 'socket.io'
 import { fileURLToPath } from 'url'
-import db, { createUser, getUsers } from './db.js'
+import db, { createUser } from './db.js'
 
 const app = express()
 const server = http.createServer(app)
@@ -71,12 +71,18 @@ app.post('/login', async (req, res) => {
 })
 
 io.on('connection', async (socket) => {
-    const users = await getUsers()
+    const sockets = await io.sockets.fetchSockets()
+    const usersOnline = []
+    sockets.forEach((s) => {
+        usersOnline.push(s.handshake.auth.user)
+    })
+
+    // const users = await getUsers()
     const data = {
         user: socket.handshake.auth.user,
-        users,
+        users: usersOnline,
+        // usersOnline,
     }
-    console.log(data)
     io.emit('clientConnect', data)
     let result
     socket.on('message', async (data, callback) => {
@@ -103,7 +109,7 @@ io.on('connection', async (socket) => {
         }
     })
     socket.on('disconnect', () => {
-        io.emit('clientDisconnect', socket.handshake.auth.username)
+        io.emit('clientDisconnect', socket.handshake.auth.user.username)
     })
     if (!socket.recovered) {
         try {

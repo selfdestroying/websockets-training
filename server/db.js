@@ -17,7 +17,7 @@ export const createTableMessages = async () => {
 
 export const createTableUsers = async () => {
     await db.exec(
-        `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE)`,
+        `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, status TEXT)`,
     )
 }
 
