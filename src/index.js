@@ -122,7 +122,7 @@ socket.on('stopTyping', () => {
 
 socket.on('clientConnect', (data) => {
     const { user, users } = data
-    usersList.innerHTML = '<h3>Users</h3>'
+    usersList.innerHTML = '<h4>Online</h4>'
     users.forEach((u) => {
         const p = document.createElement('p')
         p.classList.add('user')
