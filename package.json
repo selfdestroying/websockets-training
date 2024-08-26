@@ -1,21 +1,26 @@
 {
-    "name": "test",
+    "name": "websockets-training",
     "version": "1.0.0",
-    "type": "module",
-    "main": "server/index.js",
+    "main": "index.js",
+    "repository": "https://github.com/selfdestroying/websockets-training.git",
+    "author": "Maxim Filippov <max.f99@yandex.ru>",
     "license": "MIT",
     "scripts": {
-        "dev": "nodemon server/index.js"
-    },
-    "dependencies": {
-        "@socket.io/cluster-adapter": "^0.2.2",
-        "cookie-parser": "^1.4.6",
-        "express": "^4.19.2",
-        "socket.io": "^4.7.5",
-        "sqlite": "^5.1.1",
-        "sqlite3": "^5.1.7"
+        "start:dev": "nodemon server/server.ts"
     },
     "devDependencies": {
-        "nodemon": "^3.1.4"
+        "@types/better-sqlite3": "^7.6.11",
+        "@types/cookie-parser": "^1.4.7",
+        "@types/express": "^4.17.21",
+        "@types/node": "^22.5.0",
+        "nodemon": "^3.1.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.5.4"
+    },
+    "dependencies": {
+        "better-sqlite3": "^11.2.1",
+        "cookie-parser": "^1.4.6",
+        "express": "^4.19.2",
+        "socket.io": "^4.7.5"
     }
 }

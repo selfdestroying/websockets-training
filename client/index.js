@@ -31,7 +31,9 @@ const createServiceMessage = (message) => {
         }, 10)
     }, 2000)
 }
-const createMessage = (username, message, created_at) => {
+const createMessage = (username, message, createdAt = new Date()) => {
+    const time = new Date(createdAt).toLocaleTimeString().slice(0, -3)
+    const date = new Date(createdAt).toLocaleDateString()
     const messageDiv = document.createElement('div')
     const userAndMessageDiv = document.createElement('div')
     const messageUser = document.createElement('p')
@@ -43,7 +45,7 @@ const createMessage = (username, message, created_at) => {
     messageTime.classList.add('message-time')
     messageUser.textContent = username
     messageText.textContent = message
-    messageTime.textContent = created_at
+    messageTime.textContent = `${date} ${time}`
 
     userAndMessageDiv.appendChild(messageUser)
     userAndMessageDiv.appendChild(messageText)
@@ -88,19 +90,20 @@ const socket = io({
 
 form.addEventListener('submit', (e) => {
     e.preventDefault()
-    const message = input.value
-    if (!message) return
+    const text = input.value
+    if (!text) return
     const clientOffset = `${socket.id}-${++counter}`
-    const created_at = new Date().toJSON()
+    const createdAt = new Date()
     const data = {
-        message,
+        text,
+        createdAt: createdAt.toJSON(),
+        type: 'text',
         clientOffset,
-        created_at,
-        type: 'message',
+        userId: userId,
     }
     socket.emit('message', data)
     input.value = ''
-    createMessage(username, message, created_at)
+    createMessage(username, text)
 })
 
 input.oninput = debounce(() => {
@@ -112,32 +115,33 @@ input.addEventListener('input', (e) => {
     }
 })
 
-socket.on('startTyping', (username) => {
-    userTyping.textContent = `${username} is typing...`
+socket.on('startTyping', (users) => {
+    const usersTyping = users.filter((u) => u != username)
+    if (usersTyping.length == 0) {
+        userTyping.textContent = ''
+        return
+    }
+    userTyping.textContent = `${usersTyping.join(', ')} is typing...`
 })
 
-socket.on('stopTyping', () => {
-    userTyping.textContent = ''
+socket.on('stopTyping', (users) => {
+    const usersTyping = users.filter((u) => u != username)
+    if (usersTyping.length == 0) {
+        userTyping.textContent = ''
+        return
+    }
+    userTyping.textContent = `${usersTyping.join(', ')} is typing...`
 })
 
-socket.on('clientConnect', (data) => {
-    const { user, users } = data
+socket.on('clientConnect', (usersOnline) => {
     usersList.innerHTML = '<h4>Online</h4>'
-    users.forEach((u) => {
+    usersOnline.forEach((u) => {
         const p = document.createElement('p')
         p.classList.add('user')
         p.classList.add('online')
-        // if (usersOnline.includes(u.username)) {
-        // p.classList.add('online')
-        // }
-
         p.textContent = u.username
         usersList.appendChild(p)
     })
-    if (user.username == username) {
-        return
-    }
-    createServiceMessage(`${user.username} connected`)
 })
 socket.on('clientDisconnect', (username) => {
     const usersList = document.querySelector('#usersContainer')
@@ -149,9 +153,7 @@ socket.on('clientDisconnect', (username) => {
     }
 })
 socket.on('message', (data) => {
-    const { message, serverOffset, created_at, sender } = data
-    const time = new Date(created_at).toLocaleTimeString().slice(0, -3)
-    const date = new Date(created_at).toLocaleDateString()
-    createMessage(sender, message, `${date} ${time}`)
-    socket.auth.serverOffset = serverOffset
+    const { text, id, createdAt, username } = data
+    createMessage(username, text, createdAt)
+    socket.auth.serverOffset = id
 })
