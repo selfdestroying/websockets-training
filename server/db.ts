@@ -12,7 +12,7 @@ export const dropTables = () => {
 
 export const createTableMessages = () => {
     db.exec(
-        `CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, createdAt TEXT, type TEXT,  clientOffset TEXT UNIQUE, userId INTEGER NOT NULL, FOREIGN KEY (userId) REFERENCES users(id))`,
+        `CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, createdAt TEXT, type TEXT, clientOffset TEXT UNIQUE, userId INTEGER NOT NULL, FOREIGN KEY (userId) REFERENCES users(id))`,
     )
 }
 
@@ -34,18 +34,18 @@ export const createMessage = ({
     text,
     createdAt,
     type,
-    clientOffset,
     userId,
+    clientOffset,
 }: Message) => {
     const query = db.prepare(
-        `INSERT INTO messages (text, createdAt, type, clientOffset, userId) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO messages (text, createdAt, type, userId, clientOffset) VALUES (?, ?, ?, ?, ?)`,
     )
     const messageId = query.run(
         text,
         createdAt,
         type,
-        clientOffset,
         userId,
+        clientOffset,
     ).lastInsertRowid
     return messageId
 }
@@ -68,7 +68,7 @@ export const userExists = (userId: string, username: string) => {
 export const getMessages = (offset: number) => {
     type MessageWithUser = Message & Exclude<User, 'id'>
     const query = db.prepare<number, MessageWithUser>(
-        'SELECT * FROM messages LEFT JOIN users ON messages.userId = users.id WHERE messages.id > ?',
+        'SELECT messages.*, users.username FROM messages LEFT JOIN users ON messages.userId = users.id WHERE messages.id > ?',
     )
     const messages = query.all(offset)
     return messages

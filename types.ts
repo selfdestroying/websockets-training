@@ -1,5 +1,5 @@
 export interface ServerToClientEvents {
-    message: (data: Message) => void
+    message: (data: Message, offset: number | bigint) => void
     clientConnect: (usersOnline: User[]) => void
     clientDisconnect: (username: string) => void
     startTyping: (usersTyping: string[]) => void

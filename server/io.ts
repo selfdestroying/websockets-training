@@ -3,6 +3,9 @@ import { createMessage, getMessages } from './db'
 import { SocketServer } from './server'
 
 export const setupIO = (io: SocketServer) => {
+    // dropTables()
+    // createTableUsers()
+    // createTableMessages()
     const usersTyping: string[] = []
     io.on('connection', async (socket) => {
         const sockets = await io.sockets.fetchSockets()
@@ -11,7 +14,6 @@ export const setupIO = (io: SocketServer) => {
             usersOnline.push(s.handshake.auth.user)
         })
         io.emit('clientConnect', usersOnline)
-
         socket.on('message', (data, callback) => {
             try {
                 const newMessageId = createMessage(data)
@@ -20,13 +22,15 @@ export const setupIO = (io: SocketServer) => {
                     username: socket.handshake.auth.user.username,
                     ...data,
                 }
-                io.except(socket.id).emit('message', newData)
+                io.except(socket.id).emit('message', newData, newMessageId)
                 callback()
             } catch (error: any) {
                 if (error.errno === 19) {
+                    console.log(error)
                     callback()
                 }
                 console.log(error)
+                return
             }
         })
         socket.on('startTyping', (callback) => {
@@ -49,11 +53,10 @@ export const setupIO = (io: SocketServer) => {
         })
         if (!socket.recovered) {
             try {
-                const messages = getMessages(
-                    socket.handshake.auth.serverOffset || 0,
-                )
+                const offset = socket.handshake.auth.serverOffset || 0
+                const messages = getMessages(offset)
                 messages.forEach((m) => {
-                    socket.emit('message', m)
+                    socket.emit('message', m, m.id)
                 })
             } catch (error) {
                 console.log(error)

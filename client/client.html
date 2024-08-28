@@ -12,8 +12,57 @@
             href="style.css"
         />
     </head>
+
     <body>
+        <div class="sidebar">
+            <div class="header-container">
+                <p
+                    id="closeButton"
+                    class="close-button"
+                >
+                    &#9776; Close
+                </p>
+            </div>
+            <div
+                class="users-container"
+                id="usersContainer"
+            >
+                <h3>Online</h3>
+                <div class="user">
+                    <p class="online">Max</p>
+                    <a
+                        href="#"
+                        class="private-message-button"
+                        >Private Message</a
+                    >
+                </div>
+                <div class="user">
+                    <p class="online">Maximiliaqweqweqwenqweqwe</p>
+                    <a
+                        href="#"
+                        class="private-message-button"
+                        >Private Message</a
+                    >
+                </div>
+                <div class="user">
+                    <p class="online">Max</p>
+                    <a
+                        href="#"
+                        class="private-message-button"
+                        >Private Message</a
+                    >
+                </div>
+            </div>
+        </div>
         <div class="main-container">
+            <div class="header-container">
+                <p
+                    id="menuButton"
+                    class="menu-button"
+                >
+                    &#9776; Menu
+                </p>
+            </div>
             <div
                 id="messageContainer"
                 class="message-container"
@@ -41,12 +90,7 @@
                 </form>
             </div>
         </div>
-        <div
-            class="users-container"
-            id="usersContainer"
-        >
-            <h3>Online</h3>
-        </div>
+
         <script src="/socket.io/socket.io.js"></script>
         <script src="index.js"></script>
     </body>

@@ -72,6 +72,8 @@ const input = document.querySelector('#messageInput')
 const serviceMessage = document.querySelector('#service-message')
 const messages = document.querySelector('#messageContainer')
 const userTyping = document.querySelector('#userTyping')
+const menuButton = document.querySelector('#menuButton')
+const closeButton = document.querySelector('#closeButton')
 const username = getCookie('username') || ''
 const userId = getCookie('userId') || ''
 let counter = 0
@@ -87,7 +89,14 @@ const socket = io({
     retries: 3,
     // autoConnect: false,
 })
-
+menuButton.addEventListener('click', () => {
+    const sidebar = document.querySelector('.sidebar')
+    sidebar.classList.toggle('active')
+})
+closeButton.addEventListener('click', () => {
+    const sidebar = document.querySelector('.sidebar')
+    sidebar.classList.toggle('active')
+})
 form.addEventListener('submit', (e) => {
     e.preventDefault()
     const text = input.value
@@ -152,8 +161,8 @@ socket.on('clientDisconnect', (username) => {
         }
     }
 })
-socket.on('message', (data) => {
-    const { text, id, createdAt, username } = data
-    createMessage(username, text, createdAt)
+socket.on('message', (data, offset) => {
+    const { id, text, createdAt, username } = data
     socket.auth.serverOffset = id
+    createMessage(username, text, createdAt)
 })
