@@ -6,21 +6,11 @@
     "author": "Maxim Filippov <max.f99@yandex.ru>",
     "license": "MIT",
     "scripts": {
-        "start:dev": "nodemon server/server.ts"
+        "client": "yarn --cwd client dev",
+        "server": "yarn --cwd server start:dev",
+        "dev": "concurrently --kill-others -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"bgYellow.bold,bgBlue.bold\" \"yarn run server\" \"yarn run client\""
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.11",
-        "@types/cookie-parser": "^1.4.7",
-        "@types/express": "^4.17.21",
-        "@types/node": "^22.5.0",
-        "nodemon": "^3.1.4",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.5.4"
-    },
-    "dependencies": {
-        "better-sqlite3": "^11.2.1",
-        "cookie-parser": "^1.4.6",
-        "express": "^4.19.2",
-        "socket.io": "^4.7.5"
+        "concurrently": "^8.2.2"
     }
 }

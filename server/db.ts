@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3'
 import { Message, User } from '../types'
 
-const db = Database('db.sqlite', {
+const db = Database('../db.sqlite', {
     verbose: console.log,
 })
 
