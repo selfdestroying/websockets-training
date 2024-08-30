@@ -48,9 +48,9 @@ export const setupIO = (io: SocketServer) => {
             io.emit('stopTyping', usersTyping)
             callback()
         })
-        socket.on('disconnect', () => {
-            io.emit('clientDisconnect', socket.handshake.auth.user.username)
-        })
+        // socket.on('disconnect', () => {
+        //     io.emit('clientDisconnect', socket.handshake.auth.user.username)
+        // })
         if (!socket.recovered) {
             try {
                 const offset = socket.handshake.auth.serverOffset || 0

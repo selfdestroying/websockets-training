@@ -25,6 +25,9 @@ const app = express()
 const server = createServer(app)
 const io = new Server<SocketServer>(server, {
     connectionStateRecovery: {},
+    cors: {
+        origin: 'http://localhost:5173',
+    },
 })
 setupIO(io)
 app.use(json())

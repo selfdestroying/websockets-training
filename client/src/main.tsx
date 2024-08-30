@@ -1,16 +1,19 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import { ThemeProvider } from './components/ThemeProvider.tsx'
 import './index.css'
+import { SidebarProvider } from './prodivers/SidebarProvider.tsx'
+import { SocketProvider } from './prodivers/SocketProvider.tsx'
+import { ThemeProvider } from './prodivers/ThemeProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
+    <SocketProvider>
         <ThemeProvider
             defaultTheme="light"
             storageKey="vite-ui-theme"
         >
-            <App />
+            <SidebarProvider>
+                <App />
+            </SidebarProvider>
         </ThemeProvider>
-    </StrictMode>,
+    </SocketProvider>,
 )
