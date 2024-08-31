@@ -72,12 +72,17 @@
     }
 }
 
-#root {
-    height: 100dvh;
+html,
+body {
+    overflow: hidden;
     margin: 0;
     padding: 0;
+    height: 100dvh;
+}
+
+#root {
+    height: 100%;
     display: flex;
-    overflow: hidden;
     /* font-size: 0.8rem; */
 }
 h3,

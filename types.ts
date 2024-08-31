@@ -1,7 +1,6 @@
 export interface ServerToClientEvents {
-    message: (data: Message, offset: number | bigint) => void
-    clientConnect: (usersOnline: User[]) => void
-    clientDisconnect: (username: string) => void
+    message: (data: Message) => void
+    usersOnline: (usersOnline: User[]) => void
     startTyping: (usersTyping: string[]) => void
     stopTyping: (usersTyping: string[]) => void
 }
@@ -23,6 +22,7 @@ export interface AuthData {
 export interface User {
     id: number
     username: string
+    password: string
     status: string
 }
 
@@ -32,5 +32,6 @@ export interface Message {
     createdAt: string
     type: 'text' | 'image' | 'video' | 'service'
     userId: number
+    username: string
     clientOffset: string
 }

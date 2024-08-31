@@ -10,12 +10,7 @@ import {
     ServerToClientEvents,
     SocketData,
 } from '../types'
-import {
-    createTableMessages,
-    createTableUsers,
-    createUser,
-    dropTables,
-} from './db'
+import { createUser, getUser } from './db'
 import { setupIO } from './io'
 export type SocketServer = Server<
     ClientToServerEvents,
@@ -34,9 +29,9 @@ const io = new Server<SocketServer>(server, {
         origin: 'http://localhost:5173',
     },
 })
-dropTables()
-createTableUsers()
-createTableMessages()
+// dropTables()
+// createTableUsers()
+// createTableMessages()
 setupIO(io)
 app.use(cors())
 app.use(json())
@@ -47,8 +42,24 @@ app.use(express.static(join(__dirname, '..', 'client')))
 app.post('/login', (req, res) => {
     const { username, password } = req.body
     try {
-        const userId = createUser(username, password)
-        return res.status(200).json({ userId, username })
+        const user = getUser(username)
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+        if (user.password === password) {
+            return res.status(200).json({ id: user.id, username })
+        }
+        return res.status(401).json({ error: 'Invalid credentials' })
+    } catch {
+        return res.status(500).json({ error: 'Internal server error' })
+    }
+})
+
+app.post('/register', (req, res) => {
+    const { username, password } = req.body
+    try {
+        const id = createUser(username, password)
+        return res.status(200).json({ id, username })
     } catch (error: any) {
         return res.status(500).json({ error: error.message })
     }

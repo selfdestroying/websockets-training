@@ -57,12 +57,12 @@ export const getUsers = () => {
     return users
 }
 
-export const userExists = (userId: string, username: string) => {
+export const getUser = (username: string) => {
     const query = db.prepare<string[], User>(
-        `SELECT * FROM users WHERE id = ? OR username = ?`,
+        `SELECT * FROM users WHERE username = ?`,
     )
-    const user = query.get(userId, username)
-    return Boolean(user)
+    const user = query.get(username)
+    return user
 }
 
 export const getMessages = (offset: number) => {

@@ -8,11 +8,13 @@ import {
 } from 'react'
 
 import { api } from '@/api'
+import { AxiosError } from 'axios'
 import { AuthData, User } from '../../../types'
 
 interface IAuthContext {
     user: User | null
     isAuthenticated: boolean
+    register: (data: AuthData) => Promise<void>
     login: (data: AuthData) => Promise<void>
     logout: () => void
 }
@@ -24,6 +26,7 @@ interface AuthProviderProps {
 export const AuthContext = createContext<IAuthContext>({
     user: null,
     isAuthenticated: false,
+    register: async () => {},
     login: async () => {},
     logout: () => {},
 })
@@ -48,16 +51,30 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         }
     }, [user])
 
-    const login = async (data: AuthData) => {
+    const register = async (data: AuthData) => {
         try {
-            const response = await api.post('/login', data)
+            const response = await api.post('/register', data)
             const user = response.data
-            console.log(user)
             setUser(user)
             setIsAuthenticated(true)
         } catch {
             setUser(null)
             setIsAuthenticated(false)
+        }
+    }
+
+    const login = async (data: AuthData) => {
+        try {
+            const response = await api.post('/login', data)
+            const user = response.data
+            setUser(user)
+            setIsAuthenticated(true)
+        } catch (error) {
+            setUser(null)
+            setIsAuthenticated(false)
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.error)
+            }
         }
     }
     const logout = () => {
@@ -66,7 +83,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
 
     const value = useMemo<IAuthContext>(
-        () => ({ user, isAuthenticated, login, logout }),
+        () => ({ user, isAuthenticated, login, logout, register }),
         [user, isAuthenticated],
     )
 
