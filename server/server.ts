@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express, { json, urlencoded } from 'express'
 import { createServer } from 'http'
 import { join } from 'path'
@@ -9,9 +10,13 @@ import {
     ServerToClientEvents,
     SocketData,
 } from '../types'
-import { createUser, userExists } from './db'
+import {
+    createTableMessages,
+    createTableUsers,
+    createUser,
+    dropTables,
+} from './db'
 import { setupIO } from './io'
-
 export type SocketServer = Server<
     ClientToServerEvents,
     ServerToClientEvents,
@@ -29,49 +34,23 @@ const io = new Server<SocketServer>(server, {
         origin: 'http://localhost:5173',
     },
 })
+dropTables()
+createTableUsers()
+createTableMessages()
 setupIO(io)
+app.use(cors())
 app.use(json())
 app.use(urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(express.static(join(__dirname, '..', 'client')))
-app.get('/', (req, res) => {
-    try {
-        const username = req.cookies.username
-        const userId = req.cookies.userId
-        if (!username || !userId) {
-            return res.redirect('/login')
-        }
-        if (!userExists(userId, username)) {
-            createUser(username)
-        }
-        return res.sendFile(join(__dirname, '..', 'client', 'client.html'))
-    } catch (error) {
-        console.log('Error on server', error)
-        return res.sendStatus(500)
-    }
-})
-
-app.get('/login', (req, res) => {
-    const username = req.cookies.username
-    const userId = req.cookies.userId
-    if (username && userId) {
-        return res.redirect('/')
-    }
-    return res.sendFile(join(__dirname, '..', 'client', 'login.html'))
-})
 
 app.post('/login', (req, res) => {
-    const { username } = req.body
-    if (!username) {
-        return res.redirect('/login')
-    }
+    const { username, password } = req.body
     try {
-        const userId = createUser(username)
-        res.cookie('username', username)
-        res.cookie('userId', userId.toString())
-        return res.redirect('/')
-    } catch (error) {
-        return res.redirect('/login')
+        const userId = createUser(username, password)
+        return res.status(200).json({ userId, username })
+    } catch (error: any) {
+        return res.status(500).json({ error: error.message })
     }
 })
 

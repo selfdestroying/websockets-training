@@ -3,9 +3,6 @@ import { createMessage, getMessages } from './db'
 import { SocketServer } from './server'
 
 export const setupIO = (io: SocketServer) => {
-    // dropTables()
-    // createTableUsers()
-    // createTableMessages()
     const usersTyping: string[] = []
     io.on('connection', async (socket) => {
         const sockets = await io.sockets.fetchSockets()

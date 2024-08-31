@@ -18,15 +18,15 @@ export const createTableMessages = () => {
 
 export const createTableUsers = () => {
     db.exec(
-        `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, status TEXT)`,
+        `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, status TEXT)`,
     )
 }
 
-export const createUser = (username: string) => {
-    const query = db.prepare<string, User>(
-        `INSERT INTO users (username) VALUES (?)`,
+export const createUser = (username: string, password: string) => {
+    const query = db.prepare<string[], User>(
+        `INSERT INTO users (username, password) VALUES (?, ?)`,
     )
-    const userId = query.run(username).lastInsertRowid
+    const userId = query.run(username, password).lastInsertRowid
     return userId
 }
 
