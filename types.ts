@@ -1,11 +1,17 @@
 export interface ServerToClientEvents {
     message: (data: Message) => void
+    rooms: (rooms: Room[]) => void
     usersOnline: (usersOnline: User[]) => void
     startTyping: (usersTyping: string[]) => void
     stopTyping: (usersTyping: string[]) => void
 }
 export interface ClientToServerEvents {
     message: (data: Message, callback: () => void) => void
+    joinRoom: (
+        currentRoom: number,
+        roomId: number,
+        callback: () => void,
+    ) => void
     startTyping: (callback: () => void) => void
     stopTyping: (callback: () => void) => void
 }
@@ -31,7 +37,14 @@ export interface Message {
     text: string
     createdAt: string
     type: 'text' | 'image' | 'video' | 'service'
-    userId: number
     username: string
     clientOffset: string
+    userId: number
+    roomId: number
+}
+
+export interface Room {
+    id: number
+    name: string
+    type: string
 }

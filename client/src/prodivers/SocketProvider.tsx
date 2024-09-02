@@ -12,6 +12,7 @@ import { io, Socket } from 'socket.io-client'
 import {
     ClientToServerEvents,
     Message,
+    Room,
     ServerToClientEvents,
     User,
 } from '../../../types'
@@ -21,6 +22,9 @@ interface ISocketContext {
     usersOnline: User[]
     messages: Message[]
     setMessages: Dispatch<SetStateAction<Message[]>>
+    rooms: Room[]
+    currentRoom: Room | null
+    setCurrentRoom: Dispatch<SetStateAction<Room | null>>
 }
 
 interface SocketProviderProps {
@@ -34,6 +38,9 @@ const initialState: ISocketContext = {
     usersOnline: [],
     messages: [],
     setMessages: () => {},
+    rooms: [],
+    currentRoom: null,
+    setCurrentRoom: () => {},
 }
 
 export const SocketContext = createContext<ISocketContext>(initialState)
@@ -45,6 +52,8 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     > | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [usersOnline, setUsersOnline] = useState<User[]>([])
+    const [rooms, setRooms] = useState<Room[]>([])
+    const [currentRoom, setCurrentRoom] = useState<Room | null>(null)
     const { isAuthenticated, user } = useAuth()
     useEffect(() => {
         if (!isAuthenticated) return
@@ -59,6 +68,11 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
 
         socketInstance.on('connect', () => {
             console.log('socket connected')
+        })
+
+        socketInstance.on('rooms', (rooms: Room[]) => {
+            console.log(rooms)
+            setRooms(rooms)
         })
 
         socketInstance.on('usersOnline', (users: User[]) => {
@@ -81,6 +95,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
         usersOnline,
         messages,
         setMessages,
+        rooms,
+        currentRoom,
+        setCurrentRoom,
     }
 
     return (

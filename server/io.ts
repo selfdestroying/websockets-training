@@ -1,16 +1,31 @@
 import { User } from '../types'
-import { createMessage, getMessages } from './db'
+import { createMessage, getMessages, getRooms } from './db'
 import { SocketServer } from './server'
 
 export const setupIO = (io: SocketServer) => {
-    const usersTyping: string[] = []
+    let usersTyping: string[] = []
+    let usersOnline: Set<User> = new Set()
     io.on('connection', async (socket) => {
+        const rooms = getRooms()
         const sockets = await io.sockets.fetchSockets()
-        const usersOnline: User[] = []
         sockets.forEach((s) => {
-            usersOnline.push(s.handshake.auth.user)
+            usersOnline.add(s.handshake.auth.user)
         })
-        io.emit('usersOnline', usersOnline)
+        io.emit('usersOnline', Array.from(usersOnline))
+        io.emit('rooms', rooms)
+        socket.on('joinRoom', (currentRoom, roomId, callback) => {
+            if (currentRoom) {
+                socket.leave(currentRoom.toString())
+            }
+            socket.join(roomId.toString())
+            const offset = socket.handshake.auth.serverOffset || 0
+            const messages = getMessages(roomId, offset)
+            console.log(socket.rooms)
+            messages.forEach((m) => {
+                socket.emit('message', m)
+            })
+            callback()
+        })
         // io.except(socket.id).emit('clientConnected', socket.handshake.auth.user)
 
         socket.on('message', (data, callback) => {
@@ -20,7 +35,7 @@ export const setupIO = (io: SocketServer) => {
                     id: newMessageId,
                     ...data,
                 }
-                io.emit('message', newData)
+                io.to(data.roomId.toString()).emit('message', newData)
                 callback()
             } catch (error: any) {
                 if (error.errno === 19) {
@@ -47,24 +62,11 @@ export const setupIO = (io: SocketServer) => {
             callback()
         })
         socket.on('disconnect', () => {
-            io.emit(
-                'usersOnline',
-                usersOnline.filter(
-                    (u) => u.username !== socket.handshake.auth.user.username,
-                ),
-            )
+            usersOnline.delete(socket.handshake.auth.user)
+            // usersOnline.(
+            //     (u) => u.username !== socket.handshake.auth.user.username,
+            // )
+            io.emit('usersOnline', Array.from(usersOnline))
         })
-        if (!socket.recovered) {
-            try {
-                const offset = socket.handshake.auth.serverOffset || 0
-                const messages = getMessages(offset)
-                messages.forEach((m) => {
-                    socket.emit('message', m)
-                })
-            } catch (error) {
-                console.log(error)
-                return
-            }
-        }
     })
 }

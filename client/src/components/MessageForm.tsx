@@ -20,7 +20,7 @@ const MessageForm = () => {
         },
     })
     const { user } = useAuth()
-    const { socket } = useSocket()
+    const { socket, currentRoom } = useSocket()
     const onSubmit = (data: z.infer<typeof formSchema>) => {
         const message: Message = {
             text: data.text,
@@ -28,6 +28,7 @@ const MessageForm = () => {
             type: 'text',
             userId: user?.id as number,
             username: user?.username as string,
+            roomId: currentRoom?.id as number,
             clientOffset: `${socket?.id} ${Math.random().toString()}`,
         }
         socket?.emit('message', message)

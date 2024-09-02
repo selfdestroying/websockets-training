@@ -10,7 +10,7 @@ import {
     ServerToClientEvents,
     SocketData,
 } from '../types'
-import { createUser, getUser } from './db'
+import { createUser, getUser, setupDatabase } from './db'
 import { setupIO } from './io'
 export type SocketServer = Server<
     ClientToServerEvents,
@@ -29,9 +29,7 @@ const io = new Server<SocketServer>(server, {
         origin: 'http://localhost:5173',
     },
 })
-// dropTables()
-// createTableUsers()
-// createTableMessages()
+setupDatabase()
 setupIO(io)
 app.use(cors())
 app.use(json())

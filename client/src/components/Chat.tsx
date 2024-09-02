@@ -7,7 +7,7 @@ import { Button } from './ui/button'
 
 const Chat: FC = () => {
     const { showSidebar, setShowSidebar } = useSidebar()
-    const { messages } = useSocket()
+    const { messages, currentRoom } = useSocket()
     const scrollRef = useRef<HTMLDivElement>(null)
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current?.scrollHeight })
@@ -29,20 +29,27 @@ const Chat: FC = () => {
                     <h1 className="text-lg font-semibold">Chat</h1>
                 </div>
             </header>
+            {currentRoom ? (
+                <>
+                    <div
+                        className="flex-1 p-2 border-b overflow-y-scroll"
+                        ref={scrollRef}
+                    >
+                        {messages.map((message) => (
+                            <p key={message.id}>
+                                {message.id?.toString()} - {message.username} -{' '}
+                                {message.text} - {message.createdAt}
+                            </p>
+                        ))}
+                    </div>
 
-            <div
-                className="flex-1 p-2 border-b overflow-y-scroll"
-                ref={scrollRef}
-            >
-                {messages.map((message) => (
-                    <p key={message.id}>
-                        {message.id?.toString()} - {message.username} -{' '}
-                        {message.text} - {message.createdAt}
-                    </p>
-                ))}
-            </div>
-
-            <MessageForm />
+                    <MessageForm />
+                </>
+            ) : (
+                <div className="flex-1 flex justify-center items-center">
+                    👋 Join a room to start chatting!
+                </div>
+            )}
         </div>
     )
 }
