@@ -1,10 +1,11 @@
 import { useAuth } from '@/hooks/useAuth'
 import useSidebar from '@/hooks/useSidebar'
 import { useSocket } from '@/hooks/useSocket'
-import { LogOut, MessageCircleMoreIcon, X } from 'lucide-react'
+import { LogOut, X } from 'lucide-react'
 import { FC } from 'react'
 import Room from './Room'
 import { Button } from './ui/button'
+import User from './User'
 
 const Sidebar: FC = () => {
     const { sidebarRef, showSidebar, setShowSidebar } = useSidebar()
@@ -48,9 +49,7 @@ const Sidebar: FC = () => {
                 <nav className="flex flex-col gap-2 p-2 text-sm font-medium">
                     {rooms.map((room) => (
                         <Room
-                            id={room.id}
-                            name={room.name}
-                            type={room.type}
+                            {...room}
                             key={room.id}
                         />
                     ))}
@@ -61,21 +60,9 @@ const Sidebar: FC = () => {
                     <h1 className="text-lg font-semibold">Users</h1>
                 </div>
                 <nav className="flex flex-col gap-2 p-2 text-sm font-medium">
-                    {usersOnline.map((user) => (
-                        <div
-                            className="flex justify-between items-center border p-2 rounded-lg"
-                            key={user.id}
-                        >
-                            <p className="online">{user.username}</p>
-                            <Button
-                                variant="outline"
-                                size={'icon'}
-                                className="p-2 w-fit h-fit text-muted-foreground transition-all hover:text-primary"
-                            >
-                                <MessageCircleMoreIcon className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
+                    {usersOnline.map(
+                        (u) => u.id !== user?.id && <User {...u} />,
+                    )}
                 </nav>
             </div>
         </div>

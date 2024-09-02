@@ -97,27 +97,63 @@ export const getUser = (username: string) => {
     return user
 }
 
-export const getMessages = (roomId: number, offset: number) => {
+export const getMessages = (roomId: number | bigint, offset: number) => {
     type MessageWithUser = Message & Exclude<User, 'id'>
-    const query = db.prepare<number[], MessageWithUser>(
+    const query = db.prepare<[number, number | bigint], MessageWithUser>(
         'SELECT messages.*, users.username FROM messages LEFT JOIN users ON messages.userId = users.id WHERE messages.id > ? AND messages.roomId = ?',
     )
     const messages = query.all(offset, roomId)
     return messages
 }
 
-export const getRooms = () => {
-    const query = db.prepare<unknown[], Room>(`SELECT * FROM rooms`)
-    const rooms = query.all()
-    return rooms
+export const getRooms = (userId?: number) => {
+    if (userId) {
+        const query = db.prepare<number, Room>(
+            "SELECT rooms.* FROM rooms LEFT JOIN rooms_users ON rooms_users.roomId = rooms.id WHERE rooms_users.userId = ? OR rooms.type = 'public'",
+        )
+        const rooms = query.all(userId)
+        return rooms
+    } else {
+        const query = db.prepare<unknown[], Room>(
+            `SELECT * FROM rooms WHERE type = 'public'`,
+        )
+        const rooms = query.all()
+        return rooms
+    }
 }
 
 export const createRoom = (name: string, type: string) => {
-    const query = db.prepare<string[], Room>(
-        'INSERT INTO rooms (name, type) VALUES (?, ?)',
+    try {
+        const query = db.prepare<string[], Room>(
+            'INSERT INTO rooms (name, type) VALUES (?, ?)',
+        )
+        const roomId = query.run(name, type).lastInsertRowid
+        return roomId
+    } catch {
+        const query = db.prepare<string, Room>(
+            'SELECT * FROM rooms WHERE name = ?',
+        )
+        const room = query.get(name)
+        return room?.id as number | bigint
+    }
+}
+
+export const createLink = (
+    userId1: number,
+    userId2: number,
+    roomId: number | bigint,
+) => {
+    const query1 = db.prepare(
+        'SELECT * FROM rooms_users WHERE userId = ? AND roomId = ?',
     )
-    const roomId = query.run(name, type).lastInsertRowid
-    return roomId
+    const link = query1.get(userId1, roomId)
+    if (!link) {
+        const query2 = db.prepare<[number, number | bigint], unknown>(
+            'INSERT INTO rooms_users (userId, roomId) VALUES (?, ?)',
+        )
+        query2.run(userId1, roomId)
+        query2.run(userId2, roomId)
+    }
 }
 
 export default db

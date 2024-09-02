@@ -22,4 +22,4 @@ Real time chat using websockets
 -   [x] Don’t send the same message to the user that sent it. Instead, append the message directly as soon as they press enter.
 -   [x] Add “{user} is typing” functionality.
 -   [x] Show who’s online.
--   [ ] Add private messaging.
+-   [x] Add public and private rooms.

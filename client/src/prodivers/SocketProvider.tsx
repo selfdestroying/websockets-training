@@ -75,6 +75,10 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
             setRooms(rooms)
         })
 
+        socketInstance.on('createRoom', (room: Room) => {
+            setCurrentRoom(room)
+        })
+
         socketInstance.on('usersOnline', (users: User[]) => {
             setUsersOnline(users)
         })
