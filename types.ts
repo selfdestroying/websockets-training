@@ -3,6 +3,7 @@ export interface ServerToClientEvents {
     rooms: (rooms: Room[]) => void
     createRoom: (room: Room) => void
     usersOnline: (usersOnline: User[]) => void
+    roomJoined: (room: Room) => void
     startTyping: (usersTyping: string[]) => void
     stopTyping: (usersTyping: string[]) => void
 }

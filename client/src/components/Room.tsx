@@ -21,7 +21,7 @@ const Room: FC<Room> = ({ id, name, type }) => {
     return (
         <div
             className={`flex justify-between items-center border p-2 rounded-lg ${
-                currentRoom?.id === id ? 'bg-slate-100' : ''
+                currentRoom?.id === id ? 'bg-gray-100' : ''
             }`}
         >
             <div>

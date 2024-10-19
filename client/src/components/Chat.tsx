@@ -54,8 +54,11 @@ const Chat: FC = () => {
                             } else {
                                 currentDate = new Date(message.createdAt)
                                 return (
-                                    <div key={message.id}>
-                                        <p className="text-center">
+                                    <div
+                                        key={message.id}
+                                        className="flex flex-col gap-2"
+                                    >
+                                        <p className="text-center text-sm bg-gray-100 rounded-lg">
                                             {currentDate?.toDateString()}
                                         </p>
                                         <Message

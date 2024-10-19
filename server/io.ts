@@ -24,11 +24,26 @@ export const setupIO = (io: SocketServer) => {
             if (!data.roomToJoin.id) {
                 roomId = createRoom(data.roomToJoin.name, data.roomToJoin.type)
                 if (data.user) {
-                    createLink(
+                    const isCreated = createLink(
                         socket.handshake.auth.user.id,
                         data.user.id,
                         roomId,
                     )
+                    if (isCreated) {
+                        io.sockets.sockets.forEach((s) => {
+                            if (
+                                [
+                                    data.user?.username,
+                                    socket.handshake.auth.user.username,
+                                ].includes(s.handshake.auth.user.username)
+                            ) {
+                                s.emit(
+                                    'rooms',
+                                    getRooms(s.handshake.auth.user.id),
+                                )
+                            }
+                        })
+                    }
                 }
             } else {
                 roomId = data.roomToJoin.id
@@ -40,7 +55,12 @@ export const setupIO = (io: SocketServer) => {
             socket.join(roomId.toString())
             const offset = socket.handshake.auth.serverOffset || 0
             const messages = getMessages(roomId, offset)
-            socket.emit('rooms', getRooms(socket.handshake.auth.user.id))
+            const roomJoined = {
+                id: roomId,
+                name: data.roomToJoin.name,
+                type: data.roomToJoin.type,
+            }
+            socket.emit('roomJoined', roomJoined)
             messages.forEach((m) => {
                 socket.emit('message', m)
             })
