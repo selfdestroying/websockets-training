@@ -61,7 +61,13 @@ const Sidebar: FC = () => {
                 </div>
                 <nav className="flex flex-col gap-2 p-2 text-sm font-medium">
                     {usersOnline.map(
-                        (u) => u.id !== user?.id && <User {...u} />,
+                        (u) =>
+                            u.id !== user?.id && (
+                                <User
+                                    key={u.id}
+                                    {...u}
+                                />
+                            ),
                     )}
                 </nav>
             </div>

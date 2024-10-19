@@ -153,7 +153,9 @@ export const createLink = (
         )
         query2.run(userId1, roomId)
         query2.run(userId2, roomId)
+        return true
     }
+    return false
 }
 
 export default db

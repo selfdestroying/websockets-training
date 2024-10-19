@@ -20,7 +20,12 @@ export interface SocketData {
 
 interface JoinRoomData {
     currentRoom: Room
-    roomToJoin: Room
+    roomToJoin: {
+        id?: number
+        name: string
+        type: string
+    }
+    user?: User
 }
 
 interface CreatePrivateRoomData {

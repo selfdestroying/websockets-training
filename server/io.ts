@@ -20,35 +20,58 @@ export const setupIO = (io: SocketServer) => {
         io.emit('usersOnline', Array.from(usersOnline))
         socket.emit('rooms', rooms)
         socket.on('joinRoom', (data, callback) => {
-            if (data.currentRoom) {
-                socket.leave(data.currentRoom.id.toString())
+            let roomId: number | bigint
+            if (!data.roomToJoin.id) {
+                roomId = createRoom(data.roomToJoin.name, data.roomToJoin.type)
+                if (data.user) {
+                    createLink(
+                        socket.handshake.auth.user.id,
+                        data.user.id,
+                        roomId,
+                    )
+                }
+            } else {
+                roomId = data.roomToJoin.id
             }
-            socket.join(data.roomToJoin.id.toString())
-            const offset = socket.handshake.auth.serverOffset || 0
-            const messages = getMessages(data.roomToJoin.id, offset)
-            messages.forEach((m) => {
-                socket.emit('message', m)
-            })
-            callback()
-        })
-        socket.on('createRoom', (data, callback) => {
-            const name = [
-                data.user.username,
-                socket.handshake.auth.user.username,
-            ]
-                ?.sort()
-                ?.join('-')
-            const roomId = createRoom(name, data.type)
-            createLink(socket.handshake.auth.user.id, data.user.id, roomId)
 
             if (data.currentRoom) {
                 socket.leave(data.currentRoom.id.toString())
             }
             socket.join(roomId.toString())
-            socket.emit('createRoom', {
-                id: roomId,
-                name,
-                type: data.type,
+            const offset = socket.handshake.auth.serverOffset || 0
+            const messages = getMessages(roomId, offset)
+            socket.emit('rooms', getRooms(socket.handshake.auth.user.id))
+            messages.forEach((m) => {
+                socket.emit('message', m)
+            })
+
+            callback()
+        })
+        socket.on('createRoom', (data, callback) => {
+            const names = [
+                data.user.username,
+                socket.handshake.auth.user.username,
+            ]
+            const name = names.sort().join('-')
+            const roomId = createRoom(name, data.type)
+            const isCreated = createLink(
+                socket.handshake.auth.user.id,
+                data.user.id,
+                roomId,
+            )
+            if (data.currentRoom) {
+                socket.leave(data.currentRoom.id.toString())
+            }
+            socket.join(roomId.toString())
+
+            if (!isCreated) {
+                return
+            }
+            io.sockets.sockets.forEach((s) => {
+                if (names.includes(s.handshake.auth.user.username)) {
+                    const sRooms = getRooms(s.handshake.auth.user.id)
+                    s.emit('rooms', sRooms)
+                }
             })
             callback()
         })
